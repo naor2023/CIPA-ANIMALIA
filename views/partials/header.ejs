@@ -1,0 +1,3 @@
+<header class="topbar"><a class="brand" href="/"><span class="brand-mark">✓</span><strong class="brand-name">CIPA <span>Animália Park</span></strong></a>
+  <% if (typeof admin !== 'undefined' && admin) { %><nav><a href="/admin">Painel</a><a href="/admin/qrcode">QR Code</a><form method="post" action="/logout"><button class="link-button">Sair</button></form></nav><% } else { %><a class="admin-link" href="/login">Área da CIPA</a><% } %>
+</header>

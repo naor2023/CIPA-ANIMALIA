@@ -1,0 +1,14 @@
+<%- include('partials/head', { title: 'Canal do colaborador' }) %><%- include('partials/header', { admin: false }) %>
+<main class="public-shell"><section class="hero"><span class="eyebrow">Segurança se constrói em conjunto</span><h1>Sua voz ajuda a tornar nosso parque ainda melhor.</h1><p>Este é o canal interno para sugestões, reclamações, relatos de risco, elogios e ideias de melhoria. Cada contribuição é recebida com atenção pela CIPA.</p><div class="trust"><span>🔒 Canal interno</span><span>✓ Acompanhamento pela CIPA</span></div></section>
+<section class="form-card"><div class="section-title"><span>01</span><div><h2>Registre sua sugestão ou relato</h2><p>Campos marcados com * são obrigatórios.</p></div></div>
+<% if (success) { %><div class="alert success"><b>Registro enviado com sucesso.</b><br>A CIPA Animália Park agradece sua contribuição.</div><% } %>
+<% if (error) { %><div class="alert error"><%= error %></div><% } %>
+<form method="post" action="/enviar" class="form-grid" enctype="multipart/form-data">
+<label class="full">Nome completo *<input name="employee_name" maxlength="150" required autocomplete="name" value="<%= values.employee_name || '' %>" placeholder="Digite seu nome"></label>
+<label>Setor *<input name="department" maxlength="120" required value="<%= values.department || '' %>" placeholder="Ex.: Operações"></label>
+<label>Cargo<input name="job_title" maxlength="120" value="<%= values.job_title || '' %>" placeholder="Opcional"></label>
+<label>Tipo de manifestação *<select name="type" required><option value="">Selecione</option><% types.forEach(type => { %><option <%= values.type === type ? 'selected' : '' %>><%= type %></option><% }) %></select></label>
+<label class="full">Descrição detalhada *<textarea name="description" minlength="10" maxlength="5000" required rows="7" placeholder="Conte o que aconteceu, onde ocorreu e, se possível, sugira uma melhoria."><%= values.description || '' %></textarea><small>Não informe senhas ou dados pessoais sensíveis.</small></label>
+<div class="photo-actions full"><span>Imagem opcional</span><label class="photo-button">▧ Anexar foto<input type="file" name="photos" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple></label><label class="photo-button">◉ Tirar foto<input type="file" name="camera" accept="image/*" capture="environment"></label><small>Até 4 imagens, com no máximo 6 MB cada.</small></div>
+<button class="primary full" type="submit">Enviar para a CIPA <span>→</span></button></form></section></main>
+<footer>© <%= new Date().getFullYear() %> CIPA Animália Park · Canal interno de segurança e melhoria</footer></body></html>

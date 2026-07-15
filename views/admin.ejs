@@ -1,0 +1,30 @@
+<%- include('partials/head', { title: 'Painel administrativo' }) %><%- include('partials/header', { admin: true }) %>
+<main class="admin-shell">
+  <div class="page-heading"><div><span class="eyebrow">Visão geral</span><h1>Painel da CIPA</h1><p>Acompanhe prioridades, prazos e tratativas.</p></div><a class="button secondary" href="/admin/qrcode">▦ Exibir QR Code</a></div>
+  <section class="stats stats-expanded">
+    <article><span>Total</span><b><%= total %></b><small>registros recebidos</small></article>
+    <article class="new"><span>Novos</span><b><%= counts['Novo'] || 0 %></b><small>aguardando análise</small></article>
+    <article class="analysis"><span>Em análise</span><b><%= counts['Em análise'] || 0 %></b><small>em avaliação</small></article>
+    <article class="done"><span>Resolvidos</span><b><%= counts['Resolvido'] || 0 %></b><small>concluídos</small></article>
+    <article class="critical"><span>Críticos</span><b><%= critical %></b><small>exigem atenção</small></article>
+    <article class="overdue"><span>Em atraso</span><b><%= overdue %></b><small>prazo vencido</small></article>
+  </section>
+  <section class="panel">
+    <form method="get" action="/admin" class="filters filters-expanded">
+      <div class="filter-search"><input name="q" value="<%= filters.q %>" placeholder="Buscar por nome ou texto..."></div>
+      <input type="date" name="from" value="<%= filters.from %>" title="Data inicial"><input type="date" name="to" value="<%= filters.to %>" title="Data final">
+      <select name="department"><option value="">Todos os setores</option><% departments.forEach(x => { %><option <%= filters.department === x ? 'selected' : '' %>><%= x %></option><% }) %></select>
+      <select name="type"><option value="">Todos os tipos</option><% types.forEach(x => { %><option <%= filters.type === x ? 'selected' : '' %>><%= x %></option><% }) %></select>
+      <select name="status"><option value="">Todos os status</option><% statuses.forEach(x => { %><option <%= filters.status === x ? 'selected' : '' %>><%= x %></option><% }) %></select>
+      <select name="priority"><option value="">Todas as prioridades</option><% priorities.forEach(x => { %><option <%= filters.priority === x ? 'selected' : '' %>><%= x %></option><% }) %></select>
+      <button class="button secondary">Filtrar</button><a class="clear" href="/admin">Limpar</a>
+    </form>
+    <div class="table-title"><div><h2>Registros</h2><span><%= records.length %> resultado(s)</span></div><div class="report-actions"><a class="button secondary" href="/admin/relatorio?<%= new URLSearchParams(filters).toString() %>">▤ Relatório</a><a class="button export" href="/admin/relatorio.pdf?<%= new URLSearchParams(filters).toString() %>">↓ PDF</a><a class="button export" href="/admin/exportar.csv?<%= new URLSearchParams(filters).toString() %>">↓ CSV</a></div></div>
+    <div class="table-wrap"><table><thead><tr><th>ID / Data</th><th>Colaborador</th><th>Setor</th><th>Tipo</th><th>Prioridade</th><th>Tempo / Prazo</th><th>Status</th><th></th></tr></thead><tbody>
+      <% if (!records.length) { %><tr><td colspan="8" class="empty">Nenhum registro encontrado.</td></tr><% } %>
+      <% records.forEach(r => { const days = Math.max(0, Math.floor((Date.now() - new Date(r.created_at + 'Z')) / 86400000)); const isOverdue = r.due_date && new Date(r.due_date + 'T23:59:59') < new Date() && !['Resolvido','Arquivado'].includes(r.status); %>
+        <tr><td><b>#<%= r.id %></b><small><%= new Date(r.created_at + 'Z').toLocaleString('pt-BR', {dateStyle:'short',timeStyle:'short'}) %></small></td><td><b><%= r.employee_name %></b></td><td><%= r.department %></td><td><span class="type"><%= r.type %></span></td><td><span class="priority priority-<%= r.priority.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase() %>"><%= r.priority %></span></td><td><b><%= days %> dia(s)</b><small class="<%= isOverdue ? 'text-danger' : '' %>"><%= r.due_date ? `Prazo: ${new Date(r.due_date + 'T12:00:00').toLocaleDateString('pt-BR')}` : 'Sem prazo' %></small></td><td><span class="status status-<%= r.status.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replaceAll(' ','-').toLowerCase() %>"><%= r.status %></span></td><td><a class="open" href="/admin/registro/<%= r.id %>">Abrir →</a></td></tr>
+      <% }) %>
+    </tbody></table></div>
+  </section>
+</main></body></html>

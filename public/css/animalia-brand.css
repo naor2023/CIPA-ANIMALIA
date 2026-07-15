@@ -1,0 +1,382 @@
+.public-shell {
+  max-width: none;
+  min-height: calc(100vh - 116px);
+  padding-left: max(calc((100vw - 1250px) / 2), 28px);
+  padding-right: max(calc((100vw - 1250px) / 2), 28px);
+  position: relative;
+  isolation: isolate;
+}
+
+.brand-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .28em;
+  color: var(--green);
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -.025em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.brand-name span {
+  color: #d2a900;
+  font-weight: 800;
+}
+
+.brand.large .brand-name {
+  color: #fff;
+  font-size: 29px;
+}
+
+.brand.large .brand-name span {
+  color: var(--lime);
+}
+
+.photo-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.photo-actions > span {
+  color: #30473f;
+  font-size: 13px;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.photo-button {
+  display: inline-flex;
+  width: auto;
+  padding: 7px 10px;
+  border: 1px solid #bdcbc3;
+  border-radius: 8px;
+  background: rgba(255,255,255,.8);
+  color: var(--green);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.photo-button input { display: none; }
+.photo-actions > small { color: var(--muted); font-size: 11px; font-weight: 400; }
+.report-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.stats-expanded { grid-template-columns: repeat(6, 1fr); }
+.stats article.critical { border-top-color:#d92d20; }
+.stats article.overdue { border-top-color:#ef6c00; }
+.filters-expanded { display:flex; flex-wrap:wrap; align-items:center; }
+.filters-expanded .filter-search { flex:2 1 280px; min-width:240px; }
+.filters-expanded > input,.filters-expanded > select { flex:1 1 150px; min-width:145px; }
+.filters-expanded > select { padding-right:34px; }
+.filters-expanded > select[name="priority"] { flex-basis:185px; min-width:185px; }
+.filters-expanded > button { flex:0 0 auto; min-width:86px; }
+.filters-expanded > .clear { flex:0 0 auto; padding:10px 4px; }
+.priority { display:inline-block; padding:5px 9px; border-radius:20px; font-size:11px; font-weight:900; }
+.priority-baixa { background:#e8f3ec; color:#377a4c; }
+.priority-media { background:#fff3cd; color:#7c5a00; }
+.priority-alta { background:#ffe4cc; color:#a44800; }
+.priority-critica { background:#fee4e2; color:#b42318; }
+.text-danger { color:#b42318 !important; font-weight:800; }
+.record-badges { display:flex; align-items:center; gap:8px; }
+.management-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.history-list { position:relative; margin-top:10px; }
+.history-list::before { content:""; position:absolute; top:8px; bottom:8px; left:5px; width:2px; background:#d9e2dd; }
+.history-list article { position:relative; display:grid; grid-template-columns:12px 1fr; gap:12px; padding:0 0 18px; }
+.history-list article>span { position:relative; z-index:1; width:12px; height:12px; margin-top:5px; border:3px solid #fff; border-radius:50%; background:var(--green2); box-shadow:0 0 0 1px #b9c8c0; }
+.history-list b { font-size:13px; }
+.history-list p { margin:3px 0; color:#465b53; font-size:12px; }
+.history-list small { color:var(--muted); font-size:10px; }
+.attachment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.attachment-grid img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+
+.report-page { max-width: 1100px; margin: 0 auto; padding: 38px 28px 70px; }
+.report-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 25px; padding-bottom: 22px; border-bottom: 3px solid var(--green); }
+.report-header h1 { margin: 18px 0 4px; font-size: 34px; }
+.report-header p { margin: 0; color: var(--muted); }
+.report-tools { display: flex; gap: 10px; }
+.report-meta { display: flex; justify-content: space-between; margin: 16px 0 24px; color: var(--muted); font-size: 12px; }
+.report-record { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px; margin-bottom: 20px; break-inside: avoid; }
+.report-record-title { display: flex; justify-content: space-between; gap: 15px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+.report-record-title span { color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.report-record-title h2 { margin: 2px 0 0; font-size: 22px; }
+.report-record-title > strong { color: var(--green); }
+.report-info { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0; }
+.report-info div { background: #f5f7f4; border-radius: 8px; padding: 10px; }
+.report-info b,.report-record section>b,.report-followup b { display: block; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .07em; }
+.report-info span { font-size: 13px; font-weight: 700; }
+.report-record section p { white-space: pre-wrap; margin: 5px 0 15px; }
+.report-images { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+.report-images img { width: 100%; max-height: 230px; object-fit: contain; border: 1px solid var(--line); border-radius: 8px; }
+.report-followup { display: grid; grid-template-columns: .4fr 1.6fr; gap: 12px; margin-top: 16px; }
+.report-followup > div { min-height: 78px; border: 1px solid #bfc9c3; border-radius: 8px; padding: 10px; }
+.report-followup p { white-space: pre-wrap; margin: 5px 0; }
+.report-resolution { min-height:70px; margin-top:10px; padding:10px; border:1px solid #bfc9c3; border-radius:8px; }
+.report-resolution b { display:block; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.07em; }
+.report-resolution p { white-space:pre-wrap; margin:5px 0; }
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff !important; color: #111; }
+  .report-page { max-width: none; padding: 0; }
+  .report-tools { display: none; }
+  .report-header { padding-bottom: 12px; }
+  .report-header h1 { font-size: 25px; margin-top: 10px; }
+  .report-record { box-shadow: none; padding: 14px; margin-bottom: 12px; }
+  .report-images img { max-height: 170px; }
+}
+
+@media (max-width: 720px) {
+  .report-actions,.report-tools { width: 100%; }
+  .report-actions .button,.report-tools .button,.report-tools button { flex: 1; }
+  .attachment-grid { grid-template-columns: repeat(2, 1fr); }
+  .report-header { flex-direction: column; }
+  .report-info { grid-template-columns: 1fr 1fr; }
+  .report-followup { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 1250px) {
+  .stats-expanded { grid-template-columns:repeat(3,1fr); }
+  .filters-expanded .filter-search { flex-basis:100%; }
+}
+
+@media (max-width: 720px) {
+  .stats-expanded { grid-template-columns:1fr 1fr; }
+  .filters-expanded { flex-direction:column; align-items:stretch; }
+  .filters-expanded .filter-search,.filters-expanded > input,.filters-expanded > select,.filters-expanded > button,.filters-expanded > .clear { width:100%; min-width:0; flex:0 0 auto; }
+  .management-row { grid-template-columns:1fr; }
+  .record-badges { align-self:flex-start; }
+}
+
+/* Cartaz imprimível do QR Code */
+.qr-poster-page { display: block; padding: 28px; }
+.qr-workspace { width: min(1180px, 100%); margin: 0 auto; display: grid; grid-template-columns: 340px minmax(500px, 620px); justify-content: center; align-items: start; gap: 28px; }
+.qr-settings { position: sticky; top: 25px; padding: 28px; text-align: left; }
+.qr-settings h1 { margin: 7px 0; font-size: 27px; }
+.qr-settings > p,.qr-settings > small { color: var(--muted); }
+.qr-settings form { display: grid; gap: 12px; margin: 24px 0 12px; }
+.qr-mode-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.qr-mode-actions .button { width:100%; padding-left:10px; padding-right:10px; }
+.qr-settings .print-poster { width: 100%; }
+.qr-settings > small { display: block; margin-top: 12px; text-align: center; font-size: 11px; }
+
+.qr-poster { position: relative; isolation: isolate; overflow: hidden; width: 100%; aspect-ratio: 210/297; padding: 46px 48px 34px; border-radius: 6px; background: #fff; box-shadow: 0 20px 60px rgba(12,52,38,.18); text-align: center; color: #183229; }
+.qr-poster::before { content:""; position:absolute; inset:0; z-index:-3; background:url('/images/animalia-background.png') center/cover no-repeat; opacity:.20; }
+.qr-poster::after { content:""; position:absolute; inset:0; z-index:-2; background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.80)); }
+.poster-shape { position:absolute; z-index:-1; border-radius:50%; filter:blur(.2px); }
+.shape-one { width:210px; height:210px; background:rgba(220,232,75,.52); top:-105px; right:-70px; }
+.shape-two { width:160px; height:160px; background:rgba(38,173,106,.18); bottom:45px; left:-95px; }
+.shape-three { width:100px; height:100px; background:rgba(239,45,102,.14); top:38%; right:-55px; }
+.poster-brand { display:flex; justify-content:center; align-items:center; gap:12px; }
+.poster-brand .brand-mark { width:50px; height:50px; font-size:26px; }
+.poster-brand .brand-name { font-size:25px; }
+.poster-access { display:inline-block; margin-top:13px; padding:5px 11px; border:1px solid #cbd9d1; border-radius:20px; background:rgba(255,255,255,.82); color:var(--green); font-size:9px; font-weight:900; letter-spacing:.07em; text-transform:uppercase; }
+.poster-badge { display:inline-block; margin:28px 0 13px; padding:7px 16px; border-radius:30px; background:var(--lime); color:var(--green); text-transform:uppercase; letter-spacing:.1em; font-size:10px; font-weight:900; }
+.qr-poster h2 { margin:0; color:var(--green); font-size:45px; line-height:1.02; letter-spacing:-.045em; }
+.poster-lead { max-width:460px; margin:16px auto 18px; color:#53665e; font-size:15px; line-height:1.45; }
+.poster-qr { width:265px; height:265px; margin:0 auto 12px; padding:12px; border:5px solid var(--green); border-radius:24px; background:#fff; box-shadow:0 12px 28px rgba(23,77,58,.17); }
+.poster-qr img { display:block; width:100%; height:100%; margin:0; }
+.poster-scan b,.poster-scan span { display:block; }
+.poster-scan b { color:var(--green); font-size:18px; }
+.poster-scan span { color:var(--muted); font-size:12px; }
+.poster-url { display:inline-block; max-width:100%; margin-top:10px; padding:6px 12px; border-radius:7px; background:#edf3ef; color:var(--green); font-size:10px; font-weight:800; overflow-wrap:anywhere; }
+.poster-footer { position:absolute; left:38px; right:38px; bottom:25px; display:flex; justify-content:center; gap:20px; padding-top:12px; border-top:1px solid #d8e0db; color:#40584f; font-size:9px; font-weight:800; }
+
+@media (max-width: 950px) {
+  .qr-workspace { grid-template-columns: 1fr; max-width: 620px; }
+  .qr-settings { position: static; }
+}
+
+@media (max-width: 620px) {
+  .qr-poster-page { padding: 12px; }
+  .qr-poster { padding: 30px 22px 24px; }
+  .qr-poster h2 { font-size: 36px; }
+  .poster-lead { font-size: 13px; }
+  .poster-qr { width:230px; height:230px; }
+  .poster-footer { left:18px; right:18px; gap:8px; font-size:7px; }
+}
+
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .topbar,.qr-settings { display:none !important; }
+  html,body { margin:0 !important; padding:0 !important; width:100% !important; height:100% !important; overflow:hidden !important; background:#fff !important; }
+  .qr-poster-page,.qr-workspace { margin:0 !important; padding:0 !important; width:100vw !important; height:100vh !important; min-height:100vh !important; max-width:none !important; display:block !important; background:#fff !important; }
+  .qr-poster-page::before,.qr-poster-page::after { display:none !important; }
+  .qr-poster { position:relative !important; margin:0 auto !important; width:100% !important; height:100% !important; min-height:100% !important; aspect-ratio:auto; padding:16mm 17mm 11mm; border:0; border-radius:0; box-shadow:none; break-after:avoid; }
+  .poster-brand .brand-mark { width:17mm; height:17mm; font-size:9mm; }
+  .poster-brand .brand-name { font-size:8mm; }
+  .poster-access { margin-top:4mm; padding:1.5mm 3mm; font-size:2.7mm; }
+  .poster-badge { margin-top:5mm; font-size:3.2mm; }
+  .qr-poster h2 { font-size:16mm; }
+  .poster-lead { max-width:165mm; margin:5mm auto; font-size:5mm; }
+  .poster-qr { width:92mm; height:92mm; padding:4mm; border-width:1.6mm; border-radius:7mm; margin-bottom:4mm; }
+  .poster-scan b { font-size:6mm; }
+  .poster-scan span { font-size:4mm; }
+  .poster-url { margin-top:3mm; padding:2mm 4mm; font-size:3.3mm; }
+  .poster-footer { left:14mm; right:14mm; bottom:8mm; gap:7mm; padding-top:4mm; font-size:3mm; }
+}
+
+.public-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url('/images/animalia-background.png') center / cover no-repeat fixed;
+}
+
+.public-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(245, 246, 240, .68);
+}
+
+.public-shell .hero {
+  padding: 34px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .72);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 10px 35px rgba(21, 57, 42, .08);
+}
+
+@media (max-width: 720px) {
+  .public-shell {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .public-shell::before {
+    background-attachment: scroll;
+  }
+
+  .public-shell .hero {
+    padding: 24px;
+  }
+
+  .form-card,
+  .details,
+  .management,
+  .login-card,
+  .qr-card {
+    padding: 22px;
+  }
+
+  .page-heading h1,
+  .record-heading h1 {
+    font-size: 30px;
+  }
+
+  .table-title {
+    align-items: flex-start;
+    gap: 14px;
+    flex-direction: column;
+  }
+
+  .table-wrap {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 480px) {
+  .public-shell {
+    padding-top: 24px;
+    padding-bottom: 24px;
+    gap: 22px;
+  }
+
+  .hero h1 {
+    font-size: 32px;
+  }
+
+  .hero > p {
+    font-size: 16px;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar .brand small {
+    display: none;
+  }
+
+  .record-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .danger-zone {
+    flex-direction: column;
+  }
+
+  .danger-zone form,
+  .danger-zone button {
+    width: 100%;
+  }
+}
+
+/* Identidade Animalia também nas áreas de login e administração. */
+.login-page {
+  position: relative;
+  isolation: isolate;
+  background: url('/images/animalia-background.png') center / cover no-repeat fixed;
+}
+
+.login-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(245, 246, 240, .38);
+}
+
+.login-brand {
+  background: rgba(23, 77, 58, .88);
+  backdrop-filter: blur(2px);
+}
+
+.admin-shell,
+.qr-page {
+  position: relative;
+  isolation: isolate;
+}
+
+.admin-shell::before,
+.qr-page::before {
+  content: "";
+  position: fixed;
+  inset: 76px 0 0;
+  z-index: -2;
+  background: url('/images/animalia-background.png') center / cover no-repeat fixed;
+}
+
+.admin-shell::after,
+.qr-page::after {
+  content: "";
+  position: fixed;
+  inset: 76px 0 0;
+  z-index: -1;
+  background: rgba(245, 246, 240, .80);
+}
+
+@media (max-width: 720px) {
+  .login-page,
+  .admin-shell::before,
+  .qr-page::before {
+    background-attachment: scroll;
+  }
+
+  .admin-shell::before,
+  .admin-shell::after,
+  .qr-page::before,
+  .qr-page::after {
+    inset: 66px 0 0;
+  }
+}

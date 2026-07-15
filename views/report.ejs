@@ -1,0 +1,19 @@
+<%- include('partials/head', { title: 'Relatório de registros' }) %>
+<main class="report-page">
+  <header class="report-header">
+    <div><strong class="brand-name">CIPA <span>Animália Park</span></strong><h1>Relatório de sugestões e relatos</h1><p>Material de apoio para análise e discussão da equipe.</p></div>
+    <div class="report-tools"><a class="primary" href="/admin/relatorio.pdf?<%= new URLSearchParams(filters).toString() %>">Baixar PDF</a><button class="button secondary" onclick="window.print()">Imprimir</button><a class="button secondary" href="/admin?<%= new URLSearchParams(filters).toString() %>">Voltar ao painel</a></div>
+  </header>
+  <div class="report-meta"><span>Gerado em <%= generatedAt.toLocaleString('pt-BR') %></span><span><%= records.length %> registro(s)</span></div>
+  <% if (!records.length) { %><p class="empty">Nenhum registro encontrado para os filtros selecionados.</p><% } %>
+  <% records.forEach(record => { %>
+    <article class="report-record">
+      <div class="report-record-title"><div><span>Registro #<%= record.id %></span><h2><%= record.type %></h2></div><strong><%= record.priority %> · <%= record.status %></strong></div>
+      <div class="report-info"><div><b>Data</b><span><%= new Date(record.created_at + 'Z').toLocaleString('pt-BR') %></span></div><div><b>Colaborador</b><span><%= record.employee_name %></span></div><div><b>Setor</b><span><%= record.department %></span></div><div><b>Prazo</b><span><%= record.due_date ? new Date(record.due_date + 'T12:00:00').toLocaleDateString('pt-BR') : 'Não definido' %></span></div></div>
+      <section><b>Descrição</b><p><%= record.description %></p></section>
+      <% if (record.attachments.length) { %><div class="report-images"><% record.attachments.forEach(image => { %><img src="/admin/anexo/<%= image.id %>" alt="Imagem do registro"><% }) %></div><% } %>
+      <div class="report-followup"><div><b>Responsável</b><p><%= record.assigned_to || 'A definir' %></p></div><div><b>Observações internas</b><p><%= record.internal_notes || '________________________________________________________________________________\n________________________________________________________________________________' %></p></div></div>
+      <div class="report-resolution"><b>Solução adotada</b><p><%= record.resolution || '________________________________________________________________________________\n________________________________________________________________________________' %></p></div>
+    </article>
+  <% }) %>
+</main></body></html>

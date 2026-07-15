@@ -1,0 +1,34 @@
+<%- include('partials/head', { title: 'Cartaz QR Code' }) %>
+<%- include('partials/header', { admin: true }) %>
+<main class="qr-page qr-poster-page">
+  <section class="qr-workspace">
+    <aside class="panel qr-settings">
+      <span class="eyebrow">Divulgação</span>
+      <h1>Cartaz do canal CIPA</h1>
+      <p>Escolha onde o QR Code será usado e imprima o cartaz para murais, refeitórios e áreas de convivência.</p>
+      <form method="get" class="qr-address-form">
+        <label>Acesso interno (LAN)<input name="lanUrl" value="<%= lanUrl %>" required placeholder="http://192.168.1.10:3000"></label>
+        <label>Acesso externo (WAN)<input name="wanUrl" value="<%= wanUrl %>" required placeholder="http://IP-PUBLICO:3000"></label>
+        <div class="qr-mode-actions">
+          <button class="button <%= mode === 'lan' ? 'primary' : 'secondary' %>" name="mode" value="lan">Gerar interno</button>
+          <button class="button <%= mode === 'wan' ? 'primary' : 'secondary' %>" name="mode" value="wan">Gerar externo</button>
+        </div>
+      </form>
+      <button class="primary print-poster" type="button" onclick="window.print()">▣ Imprimir cartaz</button>
+      <small>Na impressão, somente o cartaz selecionado será exibido em formato A4.</small>
+    </aside>
+
+    <article class="qr-poster">
+      <div class="poster-shape shape-one"></div><div class="poster-shape shape-two"></div><div class="poster-shape shape-three"></div>
+      <header class="poster-brand"><span class="brand-mark">✓</span><strong class="brand-name">CIPA <span>Animália Park</span></strong></header>
+      <div class="poster-access"><%= mode === 'wan' ? 'Acesso externo • Internet' : 'Acesso interno • Rede da empresa' %></div>
+      <div class="poster-badge">Sua ideia faz a diferença</div>
+      <h2>Viu algo que<br>pode melhorar?</h2>
+      <p class="poster-lead">Aponte, sugira e ajude a construir um ambiente mais seguro e melhor para todos.</p>
+      <div class="poster-qr"><img src="<%= qr %>" alt="QR Code para acessar o formulário da CIPA"></div>
+      <div class="poster-scan"><b>Aponte a câmera do celular</b><span>e registre sua sugestão ou relato</span></div>
+      <div class="poster-url"><%= url %></div>
+      <footer class="poster-footer"><span>🔒 Canal interno</span><span>✓ Análise pela CIPA</span><span>● Leva menos de 2 minutos</span></footer>
+    </article>
+  </section>
+</main></body></html>

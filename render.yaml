@@ -2,21 +2,13 @@ services:
   - type: web
     name: cipa-sugestoes
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /
-    disk:
-      name: cipa-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: 22.17.0
-      - key: DATA_DIR
-        value: /var/data
-      - key: BACKUP_DIR
-        value: /var/data/backups
       - key: HOST
         value: 0.0.0.0
       - key: TRUST_PROXY
@@ -31,3 +23,11 @@ services:
         sync: false
       - key: PUBLIC_URL
         sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        value: https://ecalkwqqydkrhcjbyzhq.supabase.co
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: cipa-anexos

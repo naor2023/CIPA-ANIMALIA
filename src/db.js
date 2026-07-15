@@ -1,68 +1,107 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const { DatabaseSync } = require('node:sqlite');
+const { Pool } = require('pg');
 
-const dataDir = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
-fs.mkdirSync(dataDir, { recursive: true });
-const db = new DatabaseSync(path.join(dataDir, 'cipa.db'));
-db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
+if (!process.env.DATABASE_URL) {
+  throw new Error('Defina DATABASE_URL com a string de conexão PostgreSQL do Supabase.');
+}
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
-  CREATE TABLE IF NOT EXISTS records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    employee_name TEXT NOT NULL,
-    registration TEXT,
-    department TEXT NOT NULL,
-    job_title TEXT,
-    type TEXT NOT NULL,
-    description TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'Novo',
-    internal_notes TEXT DEFAULT '',
-    assigned_to TEXT DEFAULT ''
-  );
-  CREATE INDEX IF NOT EXISTS idx_records_created ON records(created_at);
-  CREATE INDEX IF NOT EXISTS idx_records_status ON records(status);
-  CREATE INDEX IF NOT EXISTS idx_records_department ON records(department);
-  CREATE TABLE IF NOT EXISTS attachments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    record_id INTEGER NOT NULL,
-    filename TEXT NOT NULL,
-    original_name TEXT,
-    mime_type TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (record_id) REFERENCES records(id) ON DELETE CASCADE
-  );
-  CREATE TABLE IF NOT EXISTS sessions (
-    sid TEXT PRIMARY KEY,
-    data TEXT NOT NULL,
-    expires_at INTEGER NOT NULL
-  );
-`);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.PGSSLMODE === 'disable' ? false : { rejectUnauthorized: false }
+});
 
-const recordColumns = new Set(db.prepare('PRAGMA table_info(records)').all().map(column => column.name));
-if (!recordColumns.has('priority')) db.exec("ALTER TABLE records ADD COLUMN priority TEXT NOT NULL DEFAULT 'Média'");
-if (!recordColumns.has('due_date')) db.exec('ALTER TABLE records ADD COLUMN due_date TEXT');
-if (!recordColumns.has('resolution')) db.exec("ALTER TABLE records ADD COLUMN resolution TEXT DEFAULT ''");
+async function query(text, params = []) {
+  const result = await pool.query(text, params);
+  return result.rows;
+}
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS audit_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    record_id INTEGER NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    username TEXT NOT NULL,
-    action TEXT NOT NULL,
-    details TEXT DEFAULT ''
-  );
-  CREATE INDEX IF NOT EXISTS idx_audit_record ON audit_logs(record_id, created_at);
-  CREATE INDEX IF NOT EXISTS idx_records_priority ON records(priority);
-  CREATE INDEX IF NOT EXISTS idx_records_due_date ON records(due_date);
-`);
+async function get(text, params = []) {
+  const result = await pool.query(text, params);
+  return result.rows[0] || null;
+}
 
-module.exports = db;
+async function run(text, params = []) {
+  const result = await pool.query(text, params);
+  return result;
+}
+
+async function transaction(callback) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const tx = {
+      query: async (text, params = []) => (await client.query(text, params)).rows,
+      get: async (text, params = []) => (await client.query(text, params)).rows[0] || null,
+      run: (text, params = []) => client.query(text, params)
+    };
+    const value = await callback(tx);
+    await client.query('COMMIT');
+    return value;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function initDb() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id BIGSERIAL PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS records (
+      id BIGSERIAL PRIMARY KEY,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      employee_name TEXT NOT NULL,
+      registration TEXT,
+      department TEXT NOT NULL,
+      job_title TEXT,
+      type TEXT NOT NULL,
+      description TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Novo',
+      priority TEXT NOT NULL DEFAULT 'Média',
+      due_date DATE,
+      internal_notes TEXT DEFAULT '',
+      assigned_to TEXT DEFAULT '',
+      resolution TEXT DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_records_created ON records(created_at);
+    CREATE INDEX IF NOT EXISTS idx_records_status ON records(status);
+    CREATE INDEX IF NOT EXISTS idx_records_department ON records(department);
+    CREATE INDEX IF NOT EXISTS idx_records_priority ON records(priority);
+    CREATE INDEX IF NOT EXISTS idx_records_due_date ON records(due_date);
+
+    CREATE TABLE IF NOT EXISTS attachments (
+      id BIGSERIAL PRIMARY KEY,
+      record_id BIGINT NOT NULL REFERENCES records(id) ON DELETE CASCADE,
+      filename TEXT NOT NULL,
+      original_name TEXT,
+      mime_type TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      sid TEXT PRIMARY KEY,
+      data TEXT NOT NULL,
+      expires_at BIGINT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id BIGSERIAL PRIMARY KEY,
+      record_id BIGINT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      username TEXT NOT NULL,
+      action TEXT NOT NULL,
+      details TEXT DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_audit_record ON audit_logs(record_id, created_at);
+  `);
+}
+
+module.exports = { pool, query, get, run, transaction, initDb };

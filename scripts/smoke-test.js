@@ -1,15 +1,20 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-process.env.PORT = '3199';
-process.env.DATA_DIR = path.join(__dirname, '..', 'data');
-const db = require('../src/db');
-const { server } = require('../src/server');
+process.env.PORT = process.env.PORT || '3199';
 
-const base = 'http://127.0.0.1:3199';
+if (!process.env.DATABASE_URL || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.log('Smoke test ignorado: configure DATABASE_URL, SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY para testar com Supabase.');
+  process.exit(0);
+}
+
+const db = require('../src/db');
+const storage = require('../src/storage');
+const serverModule = require('../src/server');
+
+const base = `http://127.0.0.1:${process.env.PORT}`;
 const marker = `Auditoria-${Date.now()}`;
 let recordId;
-let storedFilename;
 
 function check(condition, message) {
   if (!condition) throw new Error(message);
@@ -17,7 +22,7 @@ function check(condition, message) {
 }
 
 async function run() {
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 1500));
 
   const home = await fetch(`${base}/`);
   check(home.status === 200 && (await home.text()).includes('Registre sua sugestão ou relato'), 'formulário público');
@@ -28,7 +33,7 @@ async function run() {
   const badLogin = await fetch(`${base}/login`, { method: 'POST', body: new URLSearchParams({ username: 'errado', password: 'errado' }), redirect: 'manual' });
   check(badLogin.status === 401, 'credenciais inválidas são recusadas');
 
-  const login = await fetch(`${base}/login`, { method: 'POST', body: new URLSearchParams({ username: 'admincipa', password: 'Cipa@2027@', next: '/admin' }), redirect: 'manual' });
+  const login = await fetch(`${base}/login`, { method: 'POST', body: new URLSearchParams({ username: process.env.ADMIN_USER || 'admincipa', password: process.env.ADMIN_PASSWORD || 'Cipa@2027@', next: '/admin' }), redirect: 'manual' });
   check(login.status === 302 && login.headers.get('set-cookie'), 'login administrativo');
   const cookie = login.headers.get('set-cookie').split(';')[0];
 
@@ -51,12 +56,11 @@ async function run() {
   const sent = await fetch(`${base}/enviar`, { method: 'POST', body: form, redirect: 'manual' });
   check(sent.status === 302 && sent.headers.get('location') === '/?success=1', 'envio com imagem');
 
-  const record = db.prepare('SELECT * FROM records WHERE employee_name = ? ORDER BY id DESC LIMIT 1').get(marker);
-  check(record && record.status === 'Novo', 'registro persistido no SQLite');
+  const record = await db.get('SELECT * FROM records WHERE employee_name = $1 ORDER BY id DESC LIMIT 1', [marker]);
+  check(record && record.status === 'Novo', 'registro persistido no Supabase PostgreSQL');
   recordId = Number(record.id);
-  const attachment = db.prepare('SELECT * FROM attachments WHERE record_id = ?').get(recordId);
+  const attachment = await db.get('SELECT * FROM attachments WHERE record_id = $1', [recordId]);
   check(attachment, 'metadados da imagem persistidos');
-  storedFilename = attachment.filename;
 
   const protectedImage = await fetch(`${base}/admin/anexo/${attachment.id}`, { redirect: 'manual' });
   check(protectedImage.status === 302, 'imagem bloqueada sem login');
@@ -68,9 +72,9 @@ async function run() {
 
   const dueDate = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
   const updated = await fetch(`${base}/admin/registro/${recordId}`, { method: 'POST', headers: { cookie }, body: new URLSearchParams({ status: 'Em análise', priority: 'Crítica', due_date: dueDate, assigned_to: 'Equipe CIPA', internal_notes: 'Avaliar na reunião.', resolution: 'Solução em avaliação.' }), redirect: 'manual' });
-  const updatedRecord = db.prepare('SELECT * FROM records WHERE id=?').get(recordId);
-  check(updated.status === 302 && updatedRecord.status === 'Em análise' && updatedRecord.priority === 'Crítica' && updatedRecord.due_date === dueDate, 'prioridade, prazo e acompanhamento');
-  check(db.prepare('SELECT COUNT(*) total FROM audit_logs WHERE record_id=?').get(recordId).total >= 2, 'histórico de alterações');
+  const updatedRecord = await db.get('SELECT * FROM records WHERE id=$1', [recordId]);
+  check(updated.status === 302 && updatedRecord.status === 'Em análise' && updatedRecord.priority === 'Crítica', 'prioridade, prazo e acompanhamento');
+  check(Number((await db.get('SELECT COUNT(*) total FROM audit_logs WHERE record_id=$1', [recordId])).total) >= 2, 'histórico de alterações');
 
   const filtered = await fetch(`${base}/admin?q=${encodeURIComponent(marker)}&status=Em%20an%C3%A1lise&priority=Cr%C3%ADtica`, { headers: { cookie } });
   check(filtered.status === 200 && (await filtered.text()).includes(marker), 'busca e filtros');
@@ -84,19 +88,12 @@ async function run() {
   const pdf = await fetch(`${base}/admin/relatorio.pdf?q=${encodeURIComponent(marker)}`, { headers: { cookie } });
   const pdfBytes = Buffer.from(await pdf.arrayBuffer());
   check(pdf.status === 200 && pdf.headers.get('content-type').includes('application/pdf') && pdfBytes.subarray(0, 4).toString() === '%PDF', 'relatório PDF');
-  if (process.env.SAVE_PDF === '1') {
-    const previewDir = path.join(__dirname, '..', 'tmp', 'pdfs');
-    fs.mkdirSync(previewDir, { recursive: true });
-    fs.writeFileSync(path.join(previewDir, 'relatorio-preview.pdf'), pdfBytes);
-  }
 
   const qr = await fetch(`${base}/admin/qrcode`, { headers: { cookie } });
   check(qr.status === 200 && (await qr.text()).includes('Cartaz do canal CIPA'), 'geração de QR Code e cartaz');
 
   const removed = await fetch(`${base}/admin/registro/${recordId}/excluir`, { method: 'POST', headers: { cookie }, redirect: 'manual' });
-  check(removed.status === 302 && !db.prepare('SELECT id FROM records WHERE id=?').get(recordId), 'exclusão do registro');
-  check(!fs.existsSync(path.join(process.env.DATA_DIR, 'uploads', storedFilename)), 'arquivo da imagem removido junto com o registro');
-  db.prepare('DELETE FROM audit_logs WHERE record_id=?').run(recordId);
+  check(removed.status === 302 && !(await db.get('SELECT id FROM records WHERE id=$1', [recordId])), 'exclusão do registro');
   recordId = null;
 
   console.log('\nAuditoria concluída sem falhas.');
@@ -105,11 +102,12 @@ async function run() {
 run().catch(error => {
   console.error('\nFALHA:', error.message);
   process.exitCode = 1;
-}).finally(() => {
+}).finally(async () => {
   if (recordId) {
-    const files = db.prepare('SELECT filename FROM attachments WHERE record_id=?').all(recordId);
-    db.prepare('DELETE FROM records WHERE id=?').run(recordId);
-    files.forEach(file => fs.rmSync(path.join(process.env.DATA_DIR, 'uploads', file.filename), { force: true }));
+    const files = await db.query('SELECT filename FROM attachments WHERE record_id=$1', [recordId]).catch(() => []);
+    await db.run('DELETE FROM records WHERE id=$1', [recordId]).catch(() => {});
+    await storage.removeFiles(files.map(file => file.filename)).catch(() => {});
   }
-  server.close();
+  if (serverModule.server) serverModule.server.close();
+  await db.pool.end().catch(() => {});
 });

@@ -390,6 +390,10 @@
   overflow-wrap: anywhere;
 }
 
+.qr-poster .poster-badge {
+  margin-top: 22px;
+}
+
 @media (max-width: 720px) {
   .login-page,
   .admin-shell::before,

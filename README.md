@@ -16,7 +16,7 @@ Configure no Render e, se rodar localmente, no arquivo `.env`:
 ADMIN_USER=admincipa
 ADMIN_PASSWORD=uma-senha-forte
 SESSION_SECRET=uma-frase-longa-aleatoria-e-secreta
-PUBLIC_URL=https://seu-app.onrender.com
+PUBLIC_URL=https://cipa-animalia.onrender.com
 TRUST_PROXY=true
 COOKIE_SECURE=true
 DATABASE_URL=postgresql://...
@@ -54,7 +54,7 @@ O projeto inclui `render.yaml` configurado para plano `free`. Como os dados fica
    - `DATABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `ADMIN_PASSWORD`
-   - `PUBLIC_URL`
+   - `PUBLIC_URL=https://cipa-animalia.onrender.com`
    - `SESSION_SECRET`
 
 O Render injeta `PORT` automaticamente. Não defina uma porta fixa no painel.

@@ -46,6 +46,14 @@ const clean = (value, max = 5000) => String(value || '').trim().slice(0, max);
 const safeNext = (value) => String(value || '').startsWith('/admin') ? value : '/admin';
 const auth = (req, res, next) => req.session.user ? next() : res.redirect(`/login?next=${encodeURIComponent(req.originalUrl)}`);
 
+function publicUrlFromRequest(req) {
+  const configured = clean(process.env.PUBLIC_URL, 300);
+  if (configured) return configured.replace(/\/+$/, '');
+  const host = req.get('host');
+  if (host?.includes('onrender.com')) return `https://${host}`;
+  return `${req.protocol}://${host}`;
+}
+
 function normalizeDate(value) {
   if (!value) return null;
   if (value instanceof Date) return value.toISOString().slice(0, 10);
@@ -361,8 +369,9 @@ app.get('/admin/qrcode', auth, asyncRoute(async (req, res) => {
   const lanAddress = getLanAddresses()[0];
   const detectedLanUrl = lanAddress ? `${req.protocol}://${lanAddress}:${PORT}` : `${req.protocol}://${req.get('host')}`;
   const lanUrl = clean(req.query.lanUrl, 300) || detectedLanUrl;
-  const wanUrl = clean(req.query.wanUrl, 300) || process.env.PUBLIC_URL || req.protocol + '://' + req.get('host');
-  const mode = req.query.mode === 'wan' ? 'wan' : 'lan';
+  const wanUrl = clean(req.query.wanUrl, 300) || publicUrlFromRequest(req);
+  const defaultMode = wanUrl.includes('onrender.com') ? 'wan' : 'lan';
+  const mode = req.query.mode === 'lan' || req.query.mode === 'wan' ? req.query.mode : defaultMode;
   const url = mode === 'wan' ? wanUrl : lanUrl;
   const qr = await QRCode.toDataURL(url, { width: 420, margin: 2, color: { dark: '#123f31', light: '#ffffff' } });
   res.render('qrcode', { url, qr, lanUrl, wanUrl, mode });

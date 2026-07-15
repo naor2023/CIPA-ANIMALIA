@@ -366,6 +366,30 @@
   background: rgba(245, 246, 240, .80);
 }
 
+.qr-public-url {
+  display: grid;
+  gap: 6px;
+  margin: 26px 0 18px;
+  padding: 14px 15px;
+  border: 1px solid rgba(23, 77, 58, .18);
+  border-radius: 10px;
+  background: rgba(247, 250, 246, .86);
+}
+
+.qr-public-url span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.qr-public-url b {
+  color: var(--green);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 720px) {
   .login-page,
   .admin-shell::before,

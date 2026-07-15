@@ -366,15 +366,9 @@ app.get('/admin/exportar.csv', auth, asyncRoute(async (req, res) => {
 }));
 
 app.get('/admin/qrcode', auth, asyncRoute(async (req, res) => {
-  const lanAddress = getLanAddresses()[0];
-  const detectedLanUrl = lanAddress ? `${req.protocol}://${lanAddress}:${PORT}` : `${req.protocol}://${req.get('host')}`;
-  const lanUrl = clean(req.query.lanUrl, 300) || detectedLanUrl;
-  const wanUrl = clean(req.query.wanUrl, 300) || publicUrlFromRequest(req);
-  const defaultMode = wanUrl.includes('onrender.com') ? 'wan' : 'lan';
-  const mode = req.query.mode === 'lan' || req.query.mode === 'wan' ? req.query.mode : defaultMode;
-  const url = mode === 'wan' ? wanUrl : lanUrl;
+  const url = publicUrlFromRequest(req);
   const qr = await QRCode.toDataURL(url, { width: 420, margin: 2, color: { dark: '#123f31', light: '#ffffff' } });
-  res.render('qrcode', { url, qr, lanUrl, wanUrl, mode });
+  res.render('qrcode', { url, qr });
 }));
 
 app.use((req, res) => res.status(404).render('error', { message: 'Página não encontrada.' }));

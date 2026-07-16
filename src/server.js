@@ -226,75 +226,80 @@ app.get('/admin/registro/:id/mural.pdf', auth, asyncRoute(async (req, res) => {
   if (!record) return res.status(404).render('error', { message: 'Registro não encontrado.' });
   const attachments = await db.query('SELECT * FROM attachments WHERE record_id = $1 ORDER BY id', [record.id]);
 
-  const doc = new PDFDocument({ size: 'A4', margins: { top: 42, bottom: 42, left: 48, right: 48 }, info: { Title: `Sugestão em destaque #${record.id}`, Author: 'CIPA Animália Park' } });
-  const green = '#174d3a', yellow = '#d2a900', muted = '#66766f', light = '#f3f6f3', line = '#d8dfda', ink = '#183229';
+  const doc = new PDFDocument({ size: [595, 420], margins: { top: 24, bottom: 24, left: 28, right: 28 }, info: { Title: `Sugestão em destaque #${record.id}`, Author: 'CIPA Animália Park' } });
+  const green = '#174d3a', green2 = '#207254', yellow = '#d2a900', lime = '#dce84b', muted = '#66766f', light = '#f3f6f3', line = '#d8dfda', ink = '#183229';
   const usableWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
   const x = doc.page.margins.left;
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="sugestao-cipa-${record.id}.pdf"`);
   doc.pipe(res);
 
-  doc.roundedRect(x, doc.y, usableWidth, 64, 12).fillAndStroke(light, line);
-  doc.font('Helvetica-Bold').fontSize(18).fillColor(green).text('CIPA ', x + 18, 56, { continued: true }).fillColor(yellow).text('Animália Park');
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(green).text(`REGISTRO #${record.id}`, x + usableWidth - 140, 59, { width: 120, align: 'right' });
-  doc.y = 126;
+  doc.rect(0, 0, doc.page.width, doc.page.height).fill('#fbfcfa');
+  doc.circle(doc.page.width - 34, 22, 58).fill('#eef68b');
+  doc.circle(18, doc.page.height - 18, 52).fill('#d8f1e6');
+  doc.roundedRect(x, doc.page.margins.top, usableWidth, doc.page.height - doc.page.margins.top - doc.page.margins.bottom, 18).fillAndStroke('#ffffff', line);
 
-  doc.font('Helvetica-Bold').fontSize(34).fillColor(ink).text('Sugestão em destaque', { align: 'center' });
-  doc.moveDown(.25);
-  doc.font('Helvetica').fontSize(13).fillColor(muted).text('Reconhecimento pela contribuição para um ambiente mais seguro e melhor para todos.', { align: 'center' });
-  doc.moveDown(1.15);
+  const cardX = x + 20;
+  const cardY = doc.page.margins.top + 18;
+  const cardW = usableWidth - 40;
+  doc.roundedRect(cardX, cardY, 34, 34, 9).fill(green);
+  doc.font('Helvetica-Bold').fontSize(22).fillColor(lime).text('✓', cardX, cardY + 5, { width: 34, align: 'center' });
+  doc.font('Helvetica-Bold').fontSize(17).fillColor(green).text('CIPA ', cardX + 46, cardY + 6, { continued: true }).fillColor(yellow).text('Animália Park');
+  doc.font('Helvetica-Bold').fontSize(8.5).fillColor(green).text(`REGISTRO #${record.id}`, cardX + cardW - 100, cardY + 10, { width: 100, align: 'right' });
 
-  const infoY = doc.y;
-  const cardGap = 10;
-  const cardWidth = (usableWidth - cardGap * 2) / 3;
+  doc.y = cardY + 58;
+  doc.font('Helvetica-Bold').fontSize(27).fillColor(ink).text('Sugestão em destaque', cardX, doc.y, { width: 300 });
+  doc.font('Helvetica').fontSize(10.5).fillColor(muted).text('Uma contribuição reconhecida pela CIPA para melhorar nosso ambiente.', cardX + 322, cardY + 62, { width: cardW - 322, align: 'right' });
+
+  const infoY = cardY + 118;
+  const infoGap = 8;
+  const infoWidth = (cardW - infoGap * 2) / 3;
   const infoCards = [
     ['Colaborador', record.employee_name],
     ['Setor', record.department],
     ['Tipo', record.type]
   ];
   infoCards.forEach(([label, value], index) => {
-    const cardX = x + index * (cardWidth + cardGap);
-    doc.roundedRect(cardX, infoY, cardWidth, 58, 8).fill(light);
-    doc.font('Helvetica-Bold').fontSize(8).fillColor(muted).text(label.toUpperCase(), cardX + 10, infoY + 10, { characterSpacing: .5 });
-    doc.font('Helvetica-Bold').fontSize(10.5).fillColor(ink).text(String(value || 'Não informado'), cardX + 10, infoY + 27, { width: cardWidth - 20, height: 24, ellipsis: true });
+    const infoX = cardX + index * (infoWidth + infoGap);
+    doc.roundedRect(infoX, infoY, infoWidth, 48, 8).fill(light);
+    doc.font('Helvetica-Bold').fontSize(7).fillColor(muted).text(label.toUpperCase(), infoX + 9, infoY + 8, { characterSpacing: .5 });
+    doc.font('Helvetica-Bold').fontSize(9.5).fillColor(ink).text(String(value || 'Não informado'), infoX + 9, infoY + 24, { width: infoWidth - 18, height: 18, ellipsis: true });
   });
-  doc.y = infoY + 82;
 
-  doc.font('Helvetica-Bold').fontSize(15).fillColor(green).text('Ideia apresentada');
-  doc.moveDown(.35);
-  doc.roundedRect(x, doc.y, usableWidth, 116, 9).fill(light);
-  doc.font('Helvetica').fontSize(12).fillColor(ink).text(record.description, x + 16, doc.y + 16, { width: usableWidth - 32, height: 84, ellipsis: true });
-  doc.y += 138;
+  const descY = infoY + 66;
+  const descW = cardW * .58;
+  const actionX = cardX + descW + 14;
+  const actionW = cardW - descW - 14;
+  doc.font('Helvetica-Bold').fontSize(12).fillColor(green).text('Ideia apresentada', cardX, descY);
+  doc.roundedRect(cardX, descY + 20, descW, 102, 9).fill(light);
+  doc.font('Helvetica').fontSize(10).fillColor(ink).text(record.description, cardX + 13, descY + 34, { width: descW - 26, height: 72, ellipsis: true });
 
   const resolutionText = record.resolution || 'Sugestão recebida e em acompanhamento pela CIPA.';
-  doc.font('Helvetica-Bold').fontSize(15).fillColor(green).text(record.resolution ? 'Resultado ou ação adotada' : 'Andamento');
-  doc.moveDown(.35);
-  doc.roundedRect(x, doc.y, usableWidth, 96, 9).strokeColor(line).stroke();
-  doc.font('Helvetica').fontSize(11.5).fillColor(ink).text(resolutionText, x + 16, doc.y + 16, { width: usableWidth - 32, height: 62, ellipsis: true });
-  doc.y += 118;
+  doc.font('Helvetica-Bold').fontSize(12).fillColor(green).text(record.resolution ? 'Ação adotada' : 'Andamento', actionX, descY);
+  doc.roundedRect(actionX, descY + 20, actionW, 102, 9).strokeColor(line).stroke();
+  doc.font('Helvetica').fontSize(9.5).fillColor(ink).text(resolutionText, actionX + 12, descY + 34, { width: actionW - 24, height: 56, ellipsis: true });
 
+  let footerY = descY + 146;
   const printableImages = attachments.filter(image => ['image/jpeg', 'image/png'].includes(image.mime_type)).slice(0, 2);
   if (printableImages.length) {
-    doc.font('Helvetica-Bold').fontSize(13).fillColor(green).text('Imagem anexada');
-    doc.moveDown(.4);
-    const imageGap = 12;
-    const imageWidth = printableImages.length === 1 ? usableWidth : (usableWidth - imageGap) / 2;
-    const imageHeight = 132;
-    const imageY = doc.y;
+    const imageY = descY + 130;
+    const imageW = 74;
+    const imageH = 54;
+    doc.font('Helvetica-Bold').fontSize(8.5).fillColor(green).text('Imagem anexada', cardX, imageY + 18);
     for (const [index, image] of printableImages.entries()) {
-      const imageX = x + index * (imageWidth + imageGap);
-      doc.roundedRect(imageX, imageY, imageWidth, imageHeight, 8).strokeColor(line).stroke();
+      const imageX = cardX + 92 + index * (imageW + 8);
+      doc.roundedRect(imageX, imageY, imageW, imageH, 7).strokeColor(line).stroke();
       try {
         const imageBuffer = await storage.downloadFile(image.filename);
-        doc.image(imageBuffer, imageX + 8, imageY + 8, { fit: [imageWidth - 16, imageHeight - 16], align: 'center', valign: 'center' });
+        doc.image(imageBuffer, imageX + 5, imageY + 5, { fit: [imageW - 10, imageH - 10], align: 'center', valign: 'center' });
       } catch {}
     }
-    doc.y = imageY + imageHeight + 18;
+    footerY = imageY + imageH + 18;
   }
 
-  doc.moveTo(x, doc.page.height - 76).lineTo(x + usableWidth, doc.page.height - 76).strokeColor(line).stroke();
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(green).text('Obrigado por contribuir com a CIPA Animália Park.', x, doc.page.height - 60, { width: usableWidth, align: 'center' });
-  doc.font('Helvetica').fontSize(8.5).fillColor(muted).text(`Emitido em ${new Date().toLocaleDateString('pt-BR')} | Status: ${record.status}`, x, doc.page.height - 42, { width: usableWidth, align: 'center' });
+  doc.moveTo(cardX, footerY).lineTo(cardX + cardW, footerY).strokeColor(line).stroke();
+  doc.font('Helvetica-Bold').fontSize(9.5).fillColor(green).text('Obrigado por contribuir com a CIPA Animália Park.', cardX, footerY + 12, { width: cardW, align: 'center' });
+  doc.font('Helvetica').fontSize(7.5).fillColor(muted).text(`Emitido em ${new Date().toLocaleDateString('pt-BR')} | Status: ${record.status}`, cardX, footerY + 28, { width: cardW, align: 'center' });
   doc.end();
 }));
 

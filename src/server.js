@@ -400,8 +400,8 @@ app.get('/admin/relatorio.pdf', auth, asyncRoute(async (req, res) => {
 
     const colGap = 8, colWidth = (usableWidth - colGap * 3) / 4, infoY = doc.y;
     const info = [
-      ['Data', new Date(record.created_at + 'Z').toLocaleString('pt-BR')], ['Colaborador', record.employee_name],
-      ['Setor', record.department], ['Prazo', record.due_date ? new Date(record.due_date + 'T12:00:00').toLocaleDateString('pt-BR') : 'Não definido']
+      ['Data', new Date(record.created_at + 'Z').toLocaleString('pt-BR')], ['Colaborador', pdfText(record.employee_name)],
+      ['Setor', pdfText(record.department)], ['Prazo', record.due_date ? new Date(record.due_date + 'T12:00:00').toLocaleDateString('pt-BR') : 'Não definido']
     ];
     info.forEach(([name, value], index) => {
       const x = startX + index * (colWidth + colGap);
@@ -413,9 +413,10 @@ app.get('/admin/relatorio.pdf', auth, asyncRoute(async (req, res) => {
 
     label('Descrição', startX, doc.y);
     doc.moveDown(.45).font('Helvetica').fontSize(9.5).fillColor('#253d35');
-    const descHeight = doc.heightOfString(record.description, { width: usableWidth });
+    const descriptionText = pdfText(record.description);
+    const descHeight = doc.heightOfString(descriptionText, { width: usableWidth });
     ensureSpace(descHeight + 25);
-    doc.text(record.description, { width: usableWidth });
+    doc.text(descriptionText, { width: usableWidth });
     doc.moveDown(.8);
 
     const printableImages = record.attachments.filter(image => ['image/jpeg', 'image/png'].includes(image.mime_type)).slice(0, 2);
@@ -438,15 +439,15 @@ app.get('/admin/relatorio.pdf', auth, asyncRoute(async (req, res) => {
     const followY = doc.y, ownerWidth = 155, followGap = 10;
     doc.roundedRect(startX, followY, ownerWidth, 76, 5).strokeColor(line).stroke();
     label('Responsável na CIPA', startX + 9, followY + 9);
-    doc.font('Helvetica').fontSize(9).fillColor('#253d35').text(record.assigned_to || 'A definir', startX + 9, followY + 24, { width: ownerWidth - 18 });
+    doc.font('Helvetica').fontSize(9).fillColor('#253d35').text(pdfText(record.assigned_to) || 'A definir', startX + 9, followY + 24, { width: ownerWidth - 18 });
     const notesX = startX + ownerWidth + followGap, notesWidth = usableWidth - ownerWidth - followGap;
     doc.roundedRect(notesX, followY, notesWidth, 76, 5).strokeColor(line).stroke();
     label('Observações internas', notesX + 9, followY + 9);
-    doc.font('Helvetica').fontSize(8.5).fillColor('#253d35').text(record.internal_notes || '________________________________________________________________\n________________________________________________________________', notesX + 9, followY + 24, { width: notesWidth - 18, height: 44, ellipsis: true });
+    doc.font('Helvetica').fontSize(8.5).fillColor('#253d35').text(pdfText(record.internal_notes) || '________________________________________________________________\n________________________________________________________________', notesX + 9, followY + 24, { width: notesWidth - 18, height: 44, ellipsis: true });
     const resolutionY = followY + 86;
     doc.roundedRect(startX, resolutionY, usableWidth, 58, 5).strokeColor(line).stroke();
     label('Solução adotada', startX + 9, resolutionY + 9);
-    doc.font('Helvetica').fontSize(8.5).fillColor('#253d35').text(record.resolution || '________________________________________________________________________________\n________________________________________________________________________________', startX + 9, resolutionY + 24, { width: usableWidth - 18, height: 27, ellipsis: true });
+    doc.font('Helvetica').fontSize(8.5).fillColor('#253d35').text(pdfText(record.resolution) || '________________________________________________________________________________\n________________________________________________________________________________', startX + 9, resolutionY + 24, { width: usableWidth - 18, height: 27, ellipsis: true });
     doc.y = resolutionY + 74;
   }
 

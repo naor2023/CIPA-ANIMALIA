@@ -1,7 +1,7 @@
 <%- include('partials/head', { title: 'Canal do colaborador' }) %><%- include('partials/header', { admin: false }) %>
 <main class="public-shell"><section class="hero"><span class="eyebrow">Segurança se constrói em conjunto</span><h1>Sua voz ajuda a tornar nosso parque ainda melhor.</h1><p>Este é o canal interno para sugestões, reclamações, relatos de risco, elogios e ideias de melhoria. Cada contribuição é recebida com atenção pela CIPA.</p><div class="trust"><span>🔒 Canal interno</span><span>✓ Acompanhamento pela CIPA</span></div></section>
 <section class="form-card"><div class="section-title"><span>01</span><div><h2>Registre sua sugestão ou relato</h2><p>Campos marcados com * são obrigatórios.</p></div></div>
-<% if (success) { %><div class="alert success"><b>Registro enviado com sucesso.</b><br>A CIPA Animália Park agradece sua contribuição.</div><% } %>
+<% if (success) { %><div class="alert success"><b>Obrigado! Sua sugestão foi enviada para análise da CIPA.</b><br>Sua contribuição ajuda a melhorar a segurança e o cuidado com todos.</div><% } %>
 <% if (error) { %><div class="alert error"><%= error %></div><% } %>
 <form method="post" action="/enviar" class="form-grid" enctype="multipart/form-data">
 <label class="full">Nome completo *<input name="employee_name" maxlength="150" required autocomplete="name" value="<%= values.employee_name || '' %>" placeholder="Digite seu nome"></label>

@@ -347,6 +347,41 @@
   margin-top: -4px;
 }
 
+.heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px 10px;
+  white-space: normal;
+}
+
+.empty-state b {
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.empty-state span {
+  max-width: 520px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.empty-state div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
 .admin-shell,
 .qr-page {
   position: relative;

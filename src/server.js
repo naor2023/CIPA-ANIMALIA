@@ -199,8 +199,14 @@ app.get('/admin', auth, asyncRoute(async (req, res) => {
 }));
 
 app.get('/admin/registro/:id', auth, asyncRoute(async (req, res) => {
-  const record = normalizeRecord(await db.get('SELECT * FROM records WHERE id = $1', [Number(req.params.id)]));
+  const id = Number(req.params.id);
+  let record = normalizeRecord(await db.get('SELECT * FROM records WHERE id = $1', [id]));
   if (!record) return res.status(404).render('error', { message: 'Registro não encontrado.' });
+  if (record.status === 'Novo') {
+    await db.run("UPDATE records SET status='Em análise' WHERE id=$1", [id]);
+    await addAudit(id, req.session.user.username, 'Registro visualizado', 'Status alterado automaticamente de Novo para Em análise.');
+    record = { ...record, status: 'Em análise' };
+  }
   const [attachments, history] = await Promise.all([
     db.query('SELECT * FROM attachments WHERE record_id = $1 ORDER BY id', [record.id]),
     db.query('SELECT * FROM audit_logs WHERE record_id = $1 ORDER BY id DESC', [record.id])

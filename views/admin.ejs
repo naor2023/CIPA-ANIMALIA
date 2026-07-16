@@ -1,9 +1,9 @@
 <%- include('partials/head', { title: 'Painel administrativo' }) %><%- include('partials/header', { admin: true }) %>
 <main class="admin-shell">
-  <div class="page-heading"><div><span class="eyebrow">Visão geral</span><h1>Painel da CIPA</h1><p>Acompanhe prioridades, prazos e tratativas.</p></div><a class="button secondary" href="/admin/qrcode">▦ Exibir QR Code</a></div>
+  <div class="page-heading"><div><span class="eyebrow">Visão geral</span><h1>Painel da CIPA</h1><p>Registros novos ainda não foram abertos. Ao abrir, entram automaticamente em análise.</p></div><a class="button secondary" href="/admin/qrcode">▦ Exibir QR Code</a></div>
   <section class="stats stats-expanded">
     <article><span>Total</span><b><%= total %></b><small>registros recebidos</small></article>
-    <article class="new"><span>Novos</span><b><%= counts['Novo'] || 0 %></b><small>aguardando análise</small></article>
+    <article class="new"><span>Não lidos</span><b><%= counts['Novo'] || 0 %></b><small>ainda não abertos</small></article>
     <article class="analysis"><span>Em análise</span><b><%= counts['Em análise'] || 0 %></b><small>em avaliação</small></article>
     <article class="done"><span>Resolvidos</span><b><%= counts['Resolvido'] || 0 %></b><small>concluídos</small></article>
     <article class="critical"><span>Críticos</span><b><%= critical %></b><small>exigem atenção</small></article>

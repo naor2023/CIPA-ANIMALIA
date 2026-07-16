@@ -245,7 +245,6 @@ app.get('/admin/registro/:id/mural.pdf', auth, asyncRoute(async (req, res) => {
   doc.roundedRect(cardX, cardY, 34, 34, 9).fill(green);
   doc.font('Helvetica-Bold').fontSize(22).fillColor(lime).text('✓', cardX, cardY + 5, { width: 34, align: 'center' });
   doc.font('Helvetica-Bold').fontSize(17).fillColor(green).text('CIPA ', cardX + 46, cardY + 6, { continued: true }).fillColor(yellow).text('Animália Park');
-  doc.font('Helvetica-Bold').fontSize(8.5).fillColor(green).text(`REGISTRO #${record.id}`, cardX + cardW - 100, cardY + 10, { width: 100, align: 'right' });
 
   doc.y = cardY + 58;
   doc.font('Helvetica-Bold').fontSize(27).fillColor(ink).text('Sugestão em destaque', cardX, doc.y, { width: 300 });

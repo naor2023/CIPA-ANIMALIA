@@ -342,6 +342,11 @@
   backdrop-filter: blur(2px);
 }
 
+.login-form-link {
+  width: 100%;
+  margin-bottom: 22px;
+}
+
 .admin-shell,
 .qr-page {
   position: relative;

@@ -43,6 +43,12 @@ function getLanAddresses() {
 
 const asyncRoute = (handler) => (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 const clean = (value, max = 5000) => String(value || '').trim().slice(0, max);
+const pdfText = (value) => String(value || '')
+  .replace(/🍫/gu, 'chocolate')
+  .replace(/[\u{1F000}-\u{1FAFF}]/gu, '')
+  .replace(/[\uD800-\uDFFF]/g, '')
+  .replace(/[^\S\r\n]+/g, ' ')
+  .trim();
 const safeNext = (value) => String(value || '').startsWith('/admin') ? value : '/admin';
 const auth = (req, res, next) => req.session.user ? next() : res.redirect(`/login?next=${encodeURIComponent(req.originalUrl)}`);
 
@@ -243,7 +249,13 @@ app.get('/admin/registro/:id/mural.pdf', auth, asyncRoute(async (req, res) => {
   const cardY = doc.page.margins.top + 18;
   const cardW = usableWidth - 40;
   doc.roundedRect(cardX, cardY, 34, 34, 9).fill(green);
-  doc.font('Helvetica-Bold').fontSize(22).fillColor(lime).text('✓', cardX, cardY + 5, { width: 34, align: 'center' });
+  doc.save();
+  doc.lineWidth(4).lineCap('round').lineJoin('round').strokeColor(lime)
+    .moveTo(cardX + 9, cardY + 18)
+    .lineTo(cardX + 15, cardY + 24)
+    .lineTo(cardX + 25, cardY + 10)
+    .stroke();
+  doc.restore();
   doc.font('Helvetica-Bold').fontSize(17).fillColor(green).text('CIPA ', cardX + 46, cardY + 6, { continued: true }).fillColor(yellow).text('Animália Park');
 
   doc.y = cardY + 58;
@@ -254,9 +266,9 @@ app.get('/admin/registro/:id/mural.pdf', auth, asyncRoute(async (req, res) => {
   const infoGap = 8;
   const infoWidth = (cardW - infoGap * 2) / 3;
   const infoCards = [
-    ['Colaborador', record.employee_name],
-    ['Setor', record.department],
-    ['Tipo', record.type]
+    ['Colaborador', pdfText(record.employee_name)],
+    ['Setor', pdfText(record.department)],
+    ['Tipo', pdfText(record.type)]
   ];
   infoCards.forEach(([label, value], index) => {
     const infoX = cardX + index * (infoWidth + infoGap);
@@ -271,9 +283,9 @@ app.get('/admin/registro/:id/mural.pdf', auth, asyncRoute(async (req, res) => {
   const actionW = cardW - descW - 14;
   doc.font('Helvetica-Bold').fontSize(12).fillColor(green).text('Ideia apresentada', cardX, descY);
   doc.roundedRect(cardX, descY + 20, descW, 102, 9).fill(light);
-  doc.font('Helvetica').fontSize(10).fillColor(ink).text(record.description, cardX + 13, descY + 34, { width: descW - 26, height: 72, ellipsis: true });
+  doc.font('Helvetica').fontSize(10).fillColor(ink).text(pdfText(record.description), cardX + 13, descY + 34, { width: descW - 26, height: 72, ellipsis: true });
 
-  const resolutionText = record.resolution || 'Sugestão recebida e em acompanhamento pela CIPA.';
+  const resolutionText = pdfText(record.resolution) || 'Sugestão recebida e em acompanhamento pela CIPA.';
   doc.font('Helvetica-Bold').fontSize(12).fillColor(green).text(record.resolution ? 'Ação adotada' : 'Andamento', actionX, descY);
   doc.roundedRect(actionX, descY + 20, actionW, 102, 9).strokeColor(line).stroke();
   doc.font('Helvetica').fontSize(9.5).fillColor(ink).text(resolutionText, actionX + 12, descY + 34, { width: actionW - 24, height: 56, ellipsis: true });

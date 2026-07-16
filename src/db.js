@@ -67,6 +67,7 @@ async function initDb() {
       due_date DATE,
       internal_notes TEXT DEFAULT '',
       assigned_to TEXT DEFAULT '',
+      mural_status TEXT NOT NULL DEFAULT 'Em avaliação',
       resolution TEXT DEFAULT ''
     );
 
@@ -102,6 +103,7 @@ async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_audit_record ON audit_logs(record_id, created_at);
   `);
+  await pool.query("ALTER TABLE records ADD COLUMN IF NOT EXISTS mural_status TEXT NOT NULL DEFAULT 'Em avaliação'");
 }
 
 module.exports = { pool, query, get, run, transaction, initDb };

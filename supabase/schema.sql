@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS records (
   due_date DATE,
   internal_notes TEXT DEFAULT '',
   assigned_to TEXT DEFAULT '',
+  mural_status TEXT NOT NULL DEFAULT 'Em avaliação',
   resolution TEXT DEFAULT ''
 );
 

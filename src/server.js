@@ -19,6 +19,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 const TYPES = ['Sugestão', 'Reclamação', 'Relato de risco', 'Melhoria de segurança', 'Condição insegura', 'Elogio', 'Outro'];
 const STATUSES = ['Novo', 'Em análise', 'Em andamento', 'Resolvido', 'Arquivado'];
 const PRIORITIES = ['Baixa', 'Média', 'Alta', 'Crítica'];
+const MURAL_STATUSES = ['Em avaliação', 'Aprovada', 'Implantada'];
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 6 * 1024 * 1024, files: 4 },
@@ -285,8 +286,14 @@ app.get('/admin/registro/:id/mural.pdf', auth, asyncRoute(async (req, res) => {
   doc.roundedRect(cardX, descY + 20, descW, 102, 9).fill(light);
   doc.font('Helvetica').fontSize(10).fillColor(ink).text(pdfText(record.description), cardX + 13, descY + 34, { width: descW - 26, height: 72, ellipsis: true });
 
-  const resolutionText = pdfText(record.resolution) || 'Sugestão recebida e em acompanhamento pela CIPA.';
-  doc.font('Helvetica-Bold').fontSize(12).fillColor(green).text(record.resolution ? 'Ação adotada' : 'Andamento', actionX, descY);
+  const muralStatus = MURAL_STATUSES.includes(record.mural_status) ? record.mural_status : 'Em avaliação';
+  const muralDefaults = {
+    'Em avaliação': 'Sugestão recebida e em acompanhamento pela CIPA.',
+    Aprovada: 'Sugestão aprovada pela CIPA para encaminhamento.',
+    Implantada: 'Sugestão implantada com apoio da CIPA.'
+  };
+  const resolutionText = pdfText(record.resolution) || muralDefaults[muralStatus];
+  doc.font('Helvetica-Bold').fontSize(12).fillColor(green).text(muralStatus, actionX, descY);
   doc.roundedRect(actionX, descY + 20, actionW, 102, 9).strokeColor(line).stroke();
   doc.font('Helvetica').fontSize(9.5).fillColor(ink).text(resolutionText, actionX + 12, descY + 34, { width: actionW - 24, height: 56, ellipsis: true });
 
@@ -321,16 +328,18 @@ app.post('/admin/registro/:id', auth, asyncRoute(async (req, res) => {
   const dueDate = /^\d{4}-\d{2}-\d{2}$/.test(String(req.body.due_date || '')) ? req.body.due_date : null;
   if (!STATUSES.includes(status)) return res.status(400).send('Status inválido.');
   if (!PRIORITIES.includes(priority)) return res.status(400).send('Prioridade inválida.');
+  const muralStatus = MURAL_STATUSES.includes(String(req.body.mural_status || '')) ? req.body.mural_status : 'Em avaliação';
   const previous = normalizeRecord(await db.get('SELECT * FROM records WHERE id=$1', [id]));
   if (!previous) return res.status(404).render('error', { message: 'Registro não encontrado.' });
   const assignedTo = clean(req.body.assigned_to, 150), notes = clean(req.body.internal_notes, 5000), resolution = clean(req.body.resolution, 5000);
-  await db.run('UPDATE records SET status=$1, priority=$2, due_date=$3, internal_notes=$4, assigned_to=$5, resolution=$6 WHERE id=$7',
-    [status, priority, dueDate, notes, assignedTo, resolution, id]);
+  await db.run('UPDATE records SET status=$1, priority=$2, due_date=$3, internal_notes=$4, assigned_to=$5, resolution=$6, mural_status=$7 WHERE id=$8',
+    [status, priority, dueDate, notes, assignedTo, resolution, muralStatus, id]);
   const changes = [];
   if (previous.status !== status) changes.push(`Status: ${previous.status} → ${status}`);
   if (previous.priority !== priority) changes.push(`Prioridade: ${previous.priority} → ${priority}`);
   if ((previous.due_date || '') !== (dueDate || '')) changes.push(`Prazo: ${previous.due_date || 'não definido'} → ${dueDate || 'não definido'}`);
   if ((previous.assigned_to || '') !== assignedTo) changes.push(`Responsável: ${assignedTo || 'não definido'}`);
+  if ((previous.mural_status || 'Em avaliação') !== muralStatus) changes.push(`Mural: ${previous.mural_status || 'Em avaliação'} → ${muralStatus}`);
   if ((previous.internal_notes || '') !== notes) changes.push('Observações internas atualizadas');
   if ((previous.resolution || '') !== resolution) changes.push('Solução adotada atualizada');
   if (changes.length) await addAudit(id, req.session.user.username, 'Registro atualizado', changes.join(' | '));
